@@ -2,14 +2,23 @@
 #include "MipsElfRelocator.h"
 #include "Parser/Parser.h"
 
+
+
+MipsElfRelocator::MipsElfRelocator()
+{
+}
+
 int MipsElfRelocator::expectedMachine() const
 {
 	return EM_MIPS;
 }
 
-bool MipsElfRelocator::relocateOpcode(int type, RelocationData& data)
+bool MipsElfRelocator::relocateOpcode(int type, RelocationData& data, ByteArray& sectionData, int pos, Endianness endian)
 {
+	bool isOri;
+	int64_t base;
 	unsigned int p;
+	int tempPos;
 
 	unsigned int op = data.opcode;
 	switch (type)
@@ -21,11 +30,45 @@ bool MipsElfRelocator::relocateOpcode(int type, RelocationData& data)
 		op += (int) data.relocationBase;
 		break;
 	case R_MIPS_HI16:
-		p = (op & 0xFFFF) + (int) data.relocationBase;
-		op = (op&0xffff0000) | (((p >> 16) + ((p & 0x8000) != 0)) & 0xFFFF);
-		break;
+		this->mipsHi = data;
+		this->hiPos.push_front(pos);
+		this->mipsHiIsMutated = false;
+		this->mipsHiRelocOp = 0;
+		return true;
 	case R_MIPS_LO16:
-		op = (op&0xffff0000) | (((op&0xffff)+data.relocationBase)&0xffff);
+		isOri = ((op >> 26) & 0x3F) == 0x0D;
+		base = data.relocationBase;
+
+		base += (isOri) ? op & 0xffff : (short)(op & 0xFFFF);
+
+		if (pos < 0)
+		{
+			data.errorMessage = formatString(L"R_MIPS_LO16 missing R_MIPS_HI16 pair");
+			return false;
+		}
+		//create R_MIPS_HI16 opcode
+		base += (this->mipsHi.opcode & 0xFFFF) << 16;
+		p = (this->mipsHi.opcode & 0xFFFF0000) | (((base >> 16) + (isOri ? 0 : (base & 0x8000) != 0)) & 0xFFFF);
+		if (this->mipsHiIsMutated && this->mipsHiRelocOp != p)
+		{
+			tempPos = (this->hiLast.empty()) ? -1 : this->hiLast.front();
+
+			Logger::printLine(L"Warning: R_MIPS_HI16 %X symbol address %X is being mutated by multiple R_MIPS_LO16 %X. Make sure object file is 0x10 byte aligned and not malformed", tempPos, base, pos);
+		}
+		if (!this->mipsHiIsMutated)
+		{
+			this->hiLast.clear();
+			for (const int& position : this->hiPos)
+			{
+				sectionData.replaceDoubleWord(position, p, endian);
+				this->hiLast.push_front(position);
+			}
+			this->hiPos.clear();
+			this->mipsHiIsMutated = true;
+			this->mipsHiRelocOp = p;
+		}
+
+		op = (op & 0xffff0000) | (base & 0xffff);
 		break;
 	default:
 		data.errorMessage = formatString(L"Unknown MIPS relocation type %d",type);
@@ -33,6 +76,7 @@ bool MipsElfRelocator::relocateOpcode(int type, RelocationData& data)
 	}
 
 	data.opcode = op;
+	sectionData.replaceDoubleWord(pos, data.opcode, endian);
 	return true;
 }
 

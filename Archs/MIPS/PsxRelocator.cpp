@@ -457,20 +457,18 @@ bool PsxRelocator::relocateFile(PsxRelocatorFile& file, int& relocationAddress)
 			switch (rel.type)
 			{
 			case PsxRelocationType::WordLiteral:
-				reloc->relocateOpcode(R_MIPS_32,relData);
+				reloc->relocateOpcode(R_MIPS_32,relData, sectionData, pos, Endianness::Little);
 				break;
 			case PsxRelocationType::UpperImmediate:
-				reloc->relocateOpcode(R_MIPS_HI16,relData);
+				reloc->relocateOpcode(R_MIPS_HI16,relData, sectionData, pos, Endianness::Little);
 				break;
 			case PsxRelocationType::LowerImmediate:
-				reloc->relocateOpcode(R_MIPS_LO16,relData);
+				reloc->relocateOpcode(R_MIPS_LO16,relData, sectionData, pos, Endianness::Little);
 				break;
 			case PsxRelocationType::FunctionCall:
-				reloc->relocateOpcode(R_MIPS_26,relData);
+				reloc->relocateOpcode(R_MIPS_26,relData, sectionData, pos, Endianness::Little);
 				break;
 			}
-
-			sectionData.replaceDoubleWord(pos,relData.opcode);
 		}
 
 		size_t arrayStart = dataStart+relocationOffsets[seg.id]-start;

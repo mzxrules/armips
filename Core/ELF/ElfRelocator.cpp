@@ -383,14 +383,12 @@ bool ElfRelocator::relocateFile(ElfRelocatorFile& file, int64_t& relocationAddre
 					relData.relocationBase = relocationOffsets[symSection]+relData.symbolAddress;
 				}
 
-				if (relocator->relocateOpcode(rel.getType(),relData) == false)
+				if (relocator->relocateOpcode(rel.getType(), relData, sectionData, pos, elf->getEndianness()) == false)
 				{
-					Logger::queueError(Logger::Error,relData.errorMessage);
+					Logger::queueError(Logger::Error, relData.errorMessage);
 					error = true;
 					continue;
 				}
-
-				sectionData.replaceDoubleWord(pos,relData.opcode, elf->getEndianness());
 			}
 		}
 

@@ -19,7 +19,7 @@ public:
 	virtual int expectedMachine() const;
 	virtual bool isDummyRelocationType(int type) const;
 
-	virtual bool relocateOpcode(int type, RelocationData& data);
+	virtual bool relocateOpcode(int type, RelocationData& data, ByteArray& sectionData, int pos, Endianness endian);
 	virtual void setSymbolAddress(RelocationData& data, int64_t symbolAddress, int symbolType);
 
 	virtual std::unique_ptr<CAssemblerCommand> generateCtorStub(std::vector<ElfRelocatorCtor>& ctors);

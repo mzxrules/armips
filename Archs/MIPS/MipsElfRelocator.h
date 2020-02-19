@@ -1,5 +1,7 @@
 #pragma once
 #include "Core/ELF/ElfRelocator.h"
+#include <list>
+#include <iterator>
 
 enum {
 	R_MIPS_NONE,
@@ -20,8 +22,16 @@ enum {
 class MipsElfRelocator: public IElfRelocator
 {
 public:
+	MipsElfRelocator();
 	virtual int expectedMachine() const;
-	virtual bool relocateOpcode(int type, RelocationData& data);
+	virtual bool relocateOpcode(int type, RelocationData& data, ByteArray& sectionData, int pos, Endianness endian);
 	virtual void setSymbolAddress(RelocationData& data, int64_t symbolAddress, int symbolType);
 	virtual std::unique_ptr<CAssemblerCommand> generateCtorStub(std::vector<ElfRelocatorCtor>& ctors);
+
+private:
+	RelocationData mipsHi;
+	std::list<int> hiPos;
+	std::list<int> hiLast;
+	unsigned int mipsHiRelocOp;
+	bool mipsHiIsMutated;
 };

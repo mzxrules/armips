@@ -17,7 +17,7 @@ public:
 	virtual ~IElfRelocator() {};
 	virtual int expectedMachine() const = 0;
 	virtual bool isDummyRelocationType(int type) const { return false; }
-	virtual bool relocateOpcode(int type, RelocationData& data) = 0;
+	virtual bool relocateOpcode(int type, RelocationData& data, ByteArray& sectionData, int pos, Endianness endian) = 0;
 	virtual void setSymbolAddress(RelocationData& data, int64_t symbolAddress, int symbolType) = 0;
 
 	virtual std::unique_ptr<CAssemblerCommand> generateCtorStub(std::vector<ElfRelocatorCtor>& ctors) { return nullptr; }

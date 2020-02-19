@@ -29,7 +29,7 @@ int ArmElfRelocator::expectedMachine() const
 	A = addend
 */
 
-bool ArmElfRelocator::relocateOpcode(int type, RelocationData& data)
+bool ArmElfRelocator::relocateOpcode(int type, RelocationData& data, ByteArray& sectionData, int pos, Endianness endian)
 {
 	int t = (data.targetSymbolType == STT_FUNC && data.targetSymbolInfo != 0) ? 1 : 0;
 	int p = (int) data.opcodeOffset;
@@ -147,7 +147,7 @@ bool ArmElfRelocator::relocateOpcode(int type, RelocationData& data)
 		data.errorMessage = formatString(L"Unknown ARM relocation type %d",type);
 		return false;
 	}
-
+	sectionData.replaceDoubleWord(pos, data.opcode, endian);
 	return true;
 }
 
