@@ -3,8 +3,8 @@
 #include "../Util/Util.h"
 #include "FileManager.h"
 
-#define ARMIPS_VERSION_MAJOR    0
-#define ARMIPS_VERSION_MINOR    10
+#define ARMIPS_VERSION_MAJOR    7
+#define ARMIPS_VERSION_MINOR    0
 #define ARMIPS_VERSION_REVISION 0
 
 enum class ArmipsMode { FILE, MEMORY };
